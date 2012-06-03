@@ -5,6 +5,19 @@ come.
 Very dirty code at the moment, more a proof-of-concept than anything
 else.
 
+# Why ?
+CouchDB is just a database; it is not a web server. Thus, it cannot
+process docs on a GET (and even if it could, it shouldn't). This
+(future) daemon is here to the the backend work.
+
+# Why not a frontend server, like Node.js, or whatever ?
+Because it brings more dependencies for a little task. If someone runs
+MultiBin, she has CouchDB; If she has CouchDB, she has an Erlang VM; If
+she has an Erlang VM, she can run this burner. Plus, more code means
+more chances to crash.
+If more tasks are needed, an erlang web server might come in handy,
+   though.
+
 # Auth
 Basic auth only at the moment. It will read a `credentials` file that
 looks like this :
