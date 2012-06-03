@@ -29,6 +29,11 @@ iso8601date() ->
   IsoStr = io_lib:format(FmtStr, [Y, Mo, D, H, Mn, S, Micro div 1000]),
   list_to_binary(IsoStr).
 
+% Format of the cfg file:
+% ```
+% {username, "myusername"}.
+% {password, "mypassword"}.
+% ```
 extract_credentials(Cfg) ->
   Username = proplist_get_value(username, Cfg),
   Password = proplist_get_value(password, Cfg),
