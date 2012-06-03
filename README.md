@@ -19,6 +19,10 @@ more chances to crash.
 If more tasks are needed, an erlang web server might come in handy,
    though.
 
+# Dependencies
+
+* [couchbeam](https://github.com/benoitc/couchbeam)
+
 # Auth
 Basic auth only at the moment. It will read a `credentials` file that
 looks like this :
