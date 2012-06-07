@@ -19,6 +19,11 @@ more chances to crash.
 If more tasks are needed, an erlang web server might come in handy,
    though.
 
+Note that the CouchDB API can be rewritten in any language, so the
+erlang part might disappear someday, while there will always be
+a JavaScript engine; a js script might have been a better idea, after
+all.
+
 # Dependencies
 
 * [couchbeam](https://github.com/benoitc/couchbeam)
@@ -32,12 +37,63 @@ looks like this :
 {password, "mypassword"}.
 ```
 
+# Usage
+It is still a bunch of lines of code at the moment. If you want to see
+how it behaves :
+
+```erlang
+$ erl -pa /path/to/couchbeam/ebins
+erl> c(burner).
+erl> Pid = burner:start()
+<0.127.0>
+erl> burner:send_in_20_secs_doc(Pid).
+Received Date to burn : <<"2012-06-07T23:55:01.378Z">>
+{<0.113.0>,{start,{{2012,6,7},{23,55,1}}}}
+erl> burner:send_in_10_secs_doc(Pid).       % send an earlier date
+New Date : <<"2012-06-07T23:54:54.506Z">>
+{<0.113.0>,{start,{{2012,6,7},{23,54,54}}}}
+erl> burner:send_in_20_secs_doc(Pid).       % send a later date
+Not a new date
+{<0.113.0>,{start,{{2012,6,7},{23,55,5}}}}
+Burning {{2012,6,7},{23,54,54}}
+Burnt {{2012,6,7},{23,54,54}}, waiting 3s
+erl> burner:send_in_20_secs_doc(Pid).       % send a new doc during processing ...
+{<0.113.0>,{start,{{2012,6,7},{23,55,16}}}}
+Waited 3s
+Received Date to burn : <<"2012-06-07T23:55:16.876Z">>    % ... that is automatically processed
+erl>
+Burning {{2012,6,7},{23,55,12}}
+Burnt {{2012,6,7},{23,55,12}}, waiting 3s
+Waited 3s
+```
+
+
 # How it works
-It uses a special view from MultiBin (`expire_date`) that returns one
-row for each doc indexed by the expire date. This view is queried with
-the date at the moment of the call in descending order, which means that
-the retrieved doc are the docs which expire date are in the past. They
-are then all deleted.
+  MultiBin-burner is a simple state machine. There are 3 states : 
+* `nothing_to_do`
+* `waiting`
+* `burning`
+
+During the `nothing_to_do`, there is ... nothing to do. It just waits
+for a new doc to process. When a new one is sent to the Pid, it switches
+to the `waiting` state.
+
+Upon entering this state, the machine will calculate the waiting time,
+     and start a `receive` block with this time as a timeout.
+In this state, a new doc can arrive; if it is to be burnt before the
+previous one, we replace the previous one by this one (by starting a new
+    loop with the new doc).
+
+When the timeout is triggered, the machine switches to the `burning`
+state. This state is just a sequential bunch of procedures to burn the
+document(s) that have the specified expire date. When it's done, the
+machine goes back to `nothing_to_do` state. 
+
+For the purpose of testing, I introduced a 3 secs of `sleep` to
+represent a long transaction the couchdb. If a doc is sent during this
+fake processing, it will be stacked in the mailbox, and processed when
+entering the `nothing_to_do` state. We do not want the burning process
+to be interrupted.
 
 # In the future
 
