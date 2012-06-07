@@ -46,21 +46,21 @@ $ erl -pa /path/to/couchbeam/ebins
 erl> c(burner).
 erl> Pid = burner:start()
 <0.127.0>
-erl> burner:send_in_20_secs_doc(Pid).
+erl> burner:send_in_20_secs_doc(Pid).       % send a first doc
 Received Date to burn : <<"2012-06-07T23:55:01.378Z">>
 {<0.113.0>,{start,{{2012,6,7},{23,55,1}}}}
-erl> burner:send_in_10_secs_doc(Pid).       % send an earlier date
-New Date : <<"2012-06-07T23:54:54.506Z">>
+erl> burner:send_in_10_secs_doc(Pid).       % send an earlier date ...
+New Date : <<"2012-06-07T23:54:54.506Z">>   % ... which is taken into account
 {<0.113.0>,{start,{{2012,6,7},{23,54,54}}}}
-erl> burner:send_in_20_secs_doc(Pid).       % send a later date
-Not a new date
+erl> burner:send_in_20_secs_doc(Pid).       % send a later date ...
+Not a new date                              % .. which is discarded
 {<0.113.0>,{start,{{2012,6,7},{23,55,5}}}}
 Burning {{2012,6,7},{23,54,54}}
-Burnt {{2012,6,7},{23,54,54}}, waiting 3s
+Burnt {{2012,6,7},{23,54,54}}, waiting 3s   % done burning, starting a fake processing
 erl> burner:send_in_20_secs_doc(Pid).       % send a new doc during processing ...
 {<0.113.0>,{start,{{2012,6,7},{23,55,16}}}}
-Waited 3s
-Received Date to burn : <<"2012-06-07T23:55:16.876Z">>    % ... that is automatically processed
+Waited 3s                                   % ... finish fake processing ...
+Received Date to burn : <<"2012-06-07T23:55:16.876Z">>    % ... and process the new doc automatically
 erl>
 Burning {{2012,6,7},{23,55,12}}
 Burnt {{2012,6,7},{23,55,12}}, waiting 3s
