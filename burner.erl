@@ -111,4 +111,4 @@ verify_connection() ->
   {Username, Password} = extract_credentials(Cfg),
   Server = couchbeam:server_connection("localhost", 5984, "",
     [{basic_auth, {Username, Password}}]),
-  io:format("server_info : ~p~n" , [couchbeam:server_info(Server)]).
+  {ok, _Version} = couchbeam:server_info(Server).
