@@ -12,6 +12,7 @@ init() ->
   application:start(public_key),
   application:start(ssl),
   application:start(couchbeam),
+  verify_connection(),
   nothing_to_do_loop().
 
 nothing_to_do_loop() ->
@@ -21,7 +22,7 @@ nothing_to_do_loop() ->
       waiting_loop(Date)
   end.
 
-waiting_loog(NextDate = {{_,_,_},{_,_,_}}) ->
+waiting_loop(NextDate = {{_,_,_},{_,_,_}}) ->
   WaitTime = calendar:datetime_to_gregorian_seconds(NextDate) -
     calendar:datetime_to_gregorian_seconds(calendar:local_time()),
   receive
@@ -104,3 +105,10 @@ datetime_in_20_secs() ->
 is_new_date(NewDate,OldDate) ->
   calendar:datetime_to_gregorian_seconds(NewDate) <
   calendar:datetime_to_gregorian_seconds(OldDate).
+
+verify_connection() ->
+  {ok, Cfg} = file:consult("credentials"),
+  {Username, Password} = extract_credentials(Cfg),
+  Server = couchbeam:server_connection("localhost", 5984, "",
+    [{basic_auth, {Username, Password}}]),
+  io:format("server_info : ~p~n" , [couchbeam:server_info(Server)]).
